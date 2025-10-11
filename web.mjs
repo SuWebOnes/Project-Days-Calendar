@@ -7,14 +7,19 @@ import { getGreeting } from "./common.mjs";
 import daysData from "./days.json" with { type: "json" };
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday"];
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const occurences = ["first", "second", "third", "forth", "fifth"];
+const dayObjectList = [];
+const exportList = [];
 
 let todayDate;
 let firstDateDay;
 let lastDateDay;
-let weekRow=1;
+let weekRow=0;
 let month;
 let year;
 let montCount = 0;
+let lastWeek=0;
 
 
 function getTodayDate() {
@@ -25,12 +30,14 @@ function getTodayDate() {
 
 function setCalendar(){
     getTodayDate()
-    clickNextButton();
+    //clickNextButton();
     createCalendarHeader();
     findFirstDateDay(month,year);
     findLastDateDay(month,year);
     createFirstWeek();
     createWeek();
+    console.log(daysData);
+    console.log(month)
 }
 function findFirstDateDay(month, year) {
     console.log(month); //9
@@ -64,26 +71,36 @@ function createFirstWeek(){
     const tr = document.createElement("tr");
     for (let i=0; i<=6; i++) {
             const th = document.createElement("th");
-            if (i>=firstDateDay) {montCount++;th.textContent = montCount;} 
+            if (i>=firstDateDay) {montCount++;th.innerHTML = `${montCount}<br>${createCalendarDay(i, weekRow)}`;} 
             tr.appendChild(th);
-            createCalendarDay(i,weekRow);
-            
     }
     thead.appendChild(tr);
     weekRow++;
     
 }
+function countWeek(){
+    let counter=montCount;
+    let result=weekRow;
+        while (counter<=lastDateDay){
+        for (let i=0; i<=6; i++) {
+            if (i<=lastDateDay) {counter++;} 
+            if (counter>lastDateDay) break;
+            console.log(result);
+        }
+        result++;
+    }
+    return result;
+}
 function createWeek(){
+        lastWeek=countWeek();
         while (montCount<=lastDateDay){
             const thead = document.querySelector("tbody"); 
             const tr = document.createElement("tr");    
         for (let i=0; i<=6; i++) {
             const th = document.createElement("th");
-            if (i<=lastDateDay) {montCount++;th.textContent = montCount;} 
+            if (i<=lastDateDay) {montCount++;th.innerHTML = `${montCount}<br>${createCalendarDay(i, weekRow)}`;} 
             tr.appendChild(th);
-            createCalendarDay(i,weekRow);
-            
-            if (montCount>lastDateDay) return;
+            if (montCount>lastDateDay) break;
         }
         thead.appendChild(tr);
         weekRow++;
@@ -92,7 +109,29 @@ function createWeek(){
 
 function createCalendarDay(i,weekRow){
     console.log("Day : " + i, "Week:"+ weekRow,"No:"+montCount);
-    }
+    let monthName = months[month];
+    let dayName=days[i];
+    let occ=occurences[weekRow];
+    console.log(monthName,dayName,occ);
+    const matches=filterDays(monthName, dayName, occ);
+    console.log(matches);
+    return matches
+}
+   
+
+function filterDays(monthName, dayName, occ) {
+
+ if (lastWeek==5 && occ=="fifth")  occ="last";
+ if (lastWeek==4 && occ=="forth")  occ="last";
+ console.log(lastWeek + occ);
+  const result = daysData.filter(day =>
+    (!monthName || day.monthName === monthName) &&
+    (!dayName || day.dayName === dayName) &&
+    (!occ || day.occurence === occ)
+  );
+  return result.length > 0 ? result[0].name : "";
+}
+
 
 function clickPreviousButton() {
   month === 0 ? (month = 11, year--) : month--;
@@ -104,8 +143,7 @@ function clickNextButton() {
 
 
 window.onload = function() {
-    //document.querySelector("body").innerText = `${getGreeting()} - there are ${daysData.length} known days`;
+    
     document.querySelector("body").insertAdjacentText("afterbegin", `${getGreeting()} - there are ${daysData.length} known days\n`);
-
     setCalendar();
 }
