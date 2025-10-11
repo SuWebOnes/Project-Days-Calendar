@@ -1,4 +1,3 @@
-
 # Days calendar project
 
 There are some commemorative days which occur annually, but not on a fixed date.
