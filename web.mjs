@@ -18,7 +18,7 @@ let lastDateDay;
 let weekRow=0;
 let month;
 let year;
-let montCount = 0;
+let montCount = 1;
 let lastWeek=0;
 
 
@@ -29,28 +29,30 @@ function getTodayDate() {
 }
 
 function setCalendar(){
-    getTodayDate()
-    //clickNextButton();
+    getTodayDate();
     createCalendarHeader();
+    populateCalendar();
+}
+function populateCalendar(){
+    montCount = 0;
+    weekRow=0;
     findFirstDateDay(month,year);
     findLastDateDay(month,year);
     createFirstWeek();
     createWeek();
-    console.log(daysData);
-    console.log(month)
+    createHeader();
 }
+
+
 function findFirstDateDay(month, year) {
-    console.log(month); //9
-    console.log(year); //2025
   const date = new Date(year, month, 1);
   const day = date.getDay(); // 0 (Sunday) → 6 (Saturday)
   // convert so Monday = 0, Sunday = 6
   firstDateDay = (day + 6) % 7;
-  console.log(firstDateDay);
 }
 function findLastDateDay(month, year) {
   // month is 1-based (January = 1)
-  const date = new Date(year, month, 0);
+  const date = new Date(year, month+1, 0);
   lastDateDay = date.getDate(); // returns the day of the month (e.g., 28, 30, 31)
 }
 function createCalendarHeader(){
@@ -66,7 +68,6 @@ thead.appendChild(tr);
 }
 
 function createFirstWeek(){
-    console.log(firstDateDay);
     const thead = document.querySelector("tbody"); 
     const tr = document.createElement("tr");
     for (let i=0; i<=6; i++) {
@@ -85,7 +86,6 @@ function countWeek(){
         for (let i=0; i<=6; i++) {
             if (i<=lastDateDay) {counter++;} 
             if (counter>lastDateDay) break;
-            console.log(result);
         }
         result++;
     }
@@ -97,10 +97,12 @@ function createWeek(){
             const thead = document.querySelector("tbody"); 
             const tr = document.createElement("tr");    
         for (let i=0; i<=6; i++) {
-            const th = document.createElement("th");
-            if (i<=lastDateDay) {montCount++;th.innerHTML = `${montCount}<br>${createCalendarDay(i, weekRow)}`;} 
-            tr.appendChild(th);
+            console.log(montCount);
+            console.log(lastDateDay);
             if (montCount>lastDateDay) break;
+            const th = document.createElement("th");
+            if (montCount<=lastDateDay) {th.innerHTML = `${montCount}<br>${createCalendarDay(i, weekRow)}`;montCount++;} 
+            tr.appendChild(th);
         }
         thead.appendChild(tr);
         weekRow++;
@@ -108,39 +110,53 @@ function createWeek(){
 }
 
 function createCalendarDay(i,weekRow){
-    console.log("Day : " + i, "Week:"+ weekRow,"No:"+montCount);
     let monthName = months[month];
     let dayName=days[i];
     let occ=occurences[weekRow];
-    console.log(monthName,dayName,occ);
     const matches=filterDays(monthName, dayName, occ);
-    console.log(matches);
     return matches
 }
    
 
 function filterDays(monthName, dayName, occ) {
-
- if (lastWeek==5 && occ=="fifth")  occ="last";
- if (lastWeek==4 && occ=="forth")  occ="last";
- console.log(lastWeek + occ);
-  const result = daysData.filter(day =>
+ let param;
+ if (lastWeek==5 && occ=="fifth")  {param="last";}
+ else if (lastWeek==4 && occ=="forth")  {param="last";}
+ else {param=occ;}
+ const result = daysData.filter(day =>
     (!monthName || day.monthName === monthName) &&
     (!dayName || day.dayName === dayName) &&
-    (!occ || day.occurence === occ)
+    (!param || day.occurence === param)
   );
-  return result.length > 0 ? result[0].name : "";
+   return result.length > 0 ? result[0].name : "";
 }
 
 
 function clickPreviousButton() {
   month === 0 ? (month = 11, year--) : month--;
+  const tbody = document.querySelector("tbody");
+  tbody.innerHTML = "";
+  findLastDateDay(month,year);
+  populateCalendar();
 }
 
 function clickNextButton() {
-  month === 11 ? (month = 0, year++) : month++;
+  month === 11 ? (month = 0, year++) : month++; 
+  const tbody = document.querySelector("tbody");
+  tbody.innerHTML = "";
+  findLastDateDay(month,year);
+  populateCalendar(); 
 }
 
+function createHeader() {
+  document.querySelector("#header").textContent = `${months[month]} ${year}`;
+
+  const prvBtn = document.querySelector("#btnPrevious");
+  prvBtn.addEventListener("click", clickPreviousButton);
+
+  const nxtBtn = document.querySelector("#btnNext");
+  nxtBtn.addEventListener("click", clickNextButton); // ✅ fixed
+}
 
 window.onload = function() {
     
