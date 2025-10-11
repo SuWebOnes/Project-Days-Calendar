@@ -6,7 +6,7 @@
 import { getGreeting } from "./common.mjs";
 import daysData from "./days.json" with { type: "json" };
 
-const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday"];
 
 let todayDate;
 let firstDateDay;
@@ -25,6 +25,8 @@ function getTodayDate() {
 
 function setCalendar(){
     getTodayDate()
+    clickNextButton();
+    createCalendarHeader();
     findFirstDateDay(month,year);
     findLastDateDay(month,year);
     createFirstWeek();
@@ -44,23 +46,46 @@ function findLastDateDay(month, year) {
   const date = new Date(year, month, 0);
   lastDateDay = date.getDate(); // returns the day of the month (e.g., 28, 30, 31)
 }
+function createCalendarHeader(){
+
+const thead = document.querySelector("thead"); // or create one dynamically if needed
+const tr = document.createElement("tr");
+days.forEach(day => {
+  const th = document.createElement("th");
+  th.textContent = day; // set text inside <th>
+  tr.appendChild(th);
+});
+thead.appendChild(tr);
+}
 
 function createFirstWeek(){
     console.log(firstDateDay);
-    for (let i=firstDateDay; i<=6; i++) {
-        createCalendarDay(i,weekRow);
-        montCount++;
+    const thead = document.querySelector("tbody"); 
+    const tr = document.createElement("tr");
+    for (let i=0; i<=6; i++) {
+            const th = document.createElement("th");
+            if (i>=firstDateDay) {montCount++;th.textContent = montCount;} 
+            tr.appendChild(th);
+            createCalendarDay(i,weekRow);
+            
     }
+    thead.appendChild(tr);
     weekRow++;
     
 }
 function createWeek(){
         while (montCount<=lastDateDay){
+            const thead = document.querySelector("tbody"); 
+            const tr = document.createElement("tr");    
         for (let i=0; i<=6; i++) {
+            const th = document.createElement("th");
+            if (i<=lastDateDay) {montCount++;th.textContent = montCount;} 
+            tr.appendChild(th);
             createCalendarDay(i,weekRow);
-            montCount++;
+            
             if (montCount>lastDateDay) return;
         }
+        thead.appendChild(tr);
         weekRow++;
     }
 }
@@ -69,7 +94,18 @@ function createCalendarDay(i,weekRow){
     console.log("Day : " + i, "Week:"+ weekRow,"No:"+montCount);
     }
 
+function clickPreviousButton() {
+  month === 0 ? (month = 11, year--) : month--;
+}
+
+function clickNextButton() {
+  month === 11 ? (month = 0, year++) : month++;
+}
+
+
 window.onload = function() {
-    document.querySelector("body").innerText = `${getGreeting()} - there are ${daysData.length} known days`;
+    //document.querySelector("body").innerText = `${getGreeting()} - there are ${daysData.length} known days`;
+    document.querySelector("body").insertAdjacentText("afterbegin", `${getGreeting()} - there are ${daysData.length} known days\n`);
+
     setCalendar();
 }
