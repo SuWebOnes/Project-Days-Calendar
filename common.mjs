@@ -14,29 +14,11 @@ const OCCS = ["first","second","third","fourth","fifth"];
 let state = { month: new Date().getMonth(), year: new Date().getFullYear() };
 
 // --- Initialize DOM ---
-function initCalendar() {
-  document.body.innerHTML = `
-    <div style="font-family:sans-serif; display:flex; flex-direction:column; align-items:center; margin-top:20px;">
-      
-      <div style="display:flex; justify-content:space-between; width:800px; align-items:center; margin-bottom:10px;">
-        <button id="prev" style="padding:6px 12px;">⬅️ Previous</button>
-        <h2 id="header" style="margin:0;"></h2>
-        <button id="next" style="padding:6px 12px;">Next ➡️</button>
-      </div>
+function initCalendar() {  
+  
 
-      <table id="calendar" style="border-collapse:collapse; width:800px; text-align:center; box-shadow:0 0 10px rgba(0,0,0,0.1);">
-        <thead style="background:#f0f0f0;">
-          <tr>${DAYS.map(d=>`<th style="padding:6px;">${d}</th>`).join("")}</tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <div id="events" style="margin-top:20px; width:800px; text-align:left; font-size:15px; line-height:1.5;"></div>
-    </div>
-  `;
-
-  document.querySelector("#prev").onclick = prevMonth;
-  document.querySelector("#next").onclick = nextMonth;
+ // Attach to global for render access
+  window._calendar = { tbody, eventsDiv, headerH2, monthSelect, yearSelect };
 
   renderCalendar();
 }
