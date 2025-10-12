@@ -121,71 +121,65 @@ function initCalendar() {
 }
 
 // --- Render calendar ---
-function renderCalendar() {
-  const {month, year} = state;
-  const tbody = document.querySelector("tbody");
-  const eventsDiv = document.querySelector("#events");
-  tbody.innerHTML = ""; eventsDiv.innerHTML = "";
+// --- Render calendar ---
+function renderCalendar(){
+  const { month, year } = state;
+  const { tbody, eventsDiv, headerH2, monthSelect, yearSelect } = window._calendar;
+  tbody.innerHTML=""; eventsDiv.innerHTML="";
 
   const firstDay = (new Date(year, month, 1).getDay()+6)%7; // Monday=0
-  const lastDate = new Date(year, month+1, 0).getDate();
+  const lastDate = new Date(year, month+1,0).getDate();
   const totalWeeks = Math.ceil((firstDay+lastDate)/7);
 
-  let day = 1;
+  let day=1;
   const currentMonthEvents = [];
 
   for(let w=0; w<totalWeeks; w++){
-    const row = document.createElement("tr");
+    const tr=document.createElement("tr");
     for(let d=0; d<7; d++){
-      const cell = document.createElement("td");
-      cell.style.padding="8px"; cell.style.height="60px"; cell.style.verticalAlign="top"; cell.style.border="1px solid #ddd";
+      const td=document.createElement("td");
+      td.style.padding="8px"; td.style.height="60px"; td.style.verticalAlign="top"; td.style.border="1px solid #ddd";
 
-      if(w===0 && d<firstDay || day>lastDate){
-        cell.textContent="";
-      } else {
+      if(w===0 && d<firstDay || day>lastDate){ td.textContent=""; }
+      else{
         const occ = getOccurrenceOfDay(year, month, day);
         const matches = findCommemoratives(MONTHS[month], DAYS[d], occ);
-
         if(matches.length>0){
-          // Green before number and star
-          cell.innerHTML = `<span style="background-color:lightgreen; border-radius:50%; padding:2px 6px; margin-right:3px;">⭐</span>${day}`;
-          cell.style.background="#ccffcc"; // light green background
-          cell.style.fontWeight="bold";
-          cell.title = matches.map(m=>m.name).join(", ");
-          matches.forEach(m=> currentMonthEvents.push(`${MONTHS[month]} ${day}: ${m.name}`));
-        } else {
-          cell.textContent = day;
-        }
+          td.innerHTML=`<span style="background-color:lightgreen; border-radius:50%; padding:2px 6px; margin-right:3px;">⭐</span>${day}`;
+          td.style.background="#ccffcc"; td.style.fontWeight="bold";
+          td.title=matches.map(m=>m.name).join(", ");
+          matches.forEach(m=>currentMonthEvents.push(`${MONTHS[month]} ${day}: ${m.name}`));
+        } else td.textContent=day;
         day++;
       }
-      row.appendChild(cell);
+      tr.appendChild(td);
     }
-    tbody.appendChild(row);
+    tbody.appendChild(tr);
   }
 
-  document.querySelector("#header").textContent = `${MONTHS[month]} ${year}`;
+  headerH2.textContent=`${MONTHS[month]} ${year}`;
+  monthSelect.value = month;
+  yearSelect.value = year;
 
-  // --- Event list below ---
   if(currentMonthEvents.length>0){
-    const list = document.createElement("ul");
+    const ul=document.createElement("ul");
     currentMonthEvents.forEach(e=>{
-      const li = document.createElement("li"); li.textContent=e; list.appendChild(li);
+      const li=document.createElement("li");
+      li.textContent=e;
+      ul.appendChild(li);
     });
-    eventsDiv.appendChild(list);
-  } else {
-    eventsDiv.innerHTML="<p>No commemorative days this month.</p>";
-  }
+    eventsDiv.appendChild(ul);
+  } else eventsDiv.textContent="No commemorative days this month.";
 }
 
-// --- Helper: Calculate occurrence (nth weekday) ---
+// --- Helper: nth weekday occurrence ---
 function getOccurrenceOfDay(year, month, day){
-  const date = new Date(year, month, day);
-  const weekday = (date.getDay()+6)%7;
-  const firstDay = (new Date(year, month, 1).getDay()+6)%7;
-  const weekNum = Math.floor((day+firstDay-weekday-1)/7)+1;
-  const lastDate = new Date(year, month+1, 0).getDate();
-  const nextWeekSameDay = day+7>lastDate;
-  return nextWeekSameDay?"last":OCCS[weekNum-1];
+  const date=new Date(year, month, day);
+  const weekday=(date.getDay()+6)%7;
+  const firstDay=(new Date(year, month,1).getDay()+6)%7;
+  const weekNum=Math.floor((day+firstDay-weekday-1)/7)+1;
+  const lastDate=new Date(year, month+1,0).getDate();
+  return (day+7>lastDate)?"last":OCCS[weekNum-1];
 }
 
 // --- Helper: Filter matching events ---
