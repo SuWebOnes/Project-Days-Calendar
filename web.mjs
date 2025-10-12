@@ -97,8 +97,6 @@ function createWeek(){
             const thead = document.querySelector("tbody"); 
             const tr = document.createElement("tr");    
         for (let i=0; i<=6; i++) {
-            console.log(montCount);
-            console.log(lastDateDay);
             if (montCount>lastDateDay) break;
             const th = document.createElement("th");
             if (montCount<=lastDateDay) {th.innerHTML = `${montCount}<br>${createCalendarDay(i, weekRow)}`;montCount++;} 
@@ -108,12 +106,89 @@ function createWeek(){
         weekRow++;
     }
 }
+function exportCalendar() {
+    const startYear = 2020;
+    const endYear = 2030;
+
+    exportList.length = 0; // clear previous exports
+
+    for (let y = startYear; y <= endYear; y++) {   
+        for (let m = 0; m <= 11; m++) {
+            month = m;
+            year = y;
+            montCount = 1;
+            weekRow = 0;
+            
+            findFirstDateDay(month, year);
+            findLastDateDay(month, year);
+            lastWeek = countWeek();
+
+            // first week
+            for (let i = 0; i <= 6; i++) {
+                if (i >= firstDateDay) {
+                    let monthName = months[month];
+                    let dayName = days[i];
+                    let occ = occurences[weekRow];
+                    const matches = createCalendarDay2(i, weekRow);
+                    if (matches.length > 0) {
+                        addToExportList(matches[0], montCount, month, year);
+                    }
+                    montCount++;
+                } 
+            }
+
+            weekRow++;
+
+            // remaining weeks
+            while (montCount <= lastDateDay) {
+                for (let i = 0; i <= 6; i++) {
+                    if (montCount > lastDateDay) break;
+                    let monthName = months[month];
+                    let dayName = days[i];
+                    let occ = occurences[weekRow];
+                    const matches = createCalendarDay2(i, weekRow);
+                    if (matches.length > 0) {
+                        addToExportList(matches[0], montCount, month, year);
+                    }
+                    montCount++;
+                }
+                weekRow++;
+            }
+        }
+    }
+
+    console.log(exportList);
+}
+
+function addToExportList(matches,montCount,month,year){
+
+        exportList.push({
+            name: matches.name,
+            monthName: matches.monthName,
+            dayName:matches.dayName,
+            occurence : matches.occurence,
+            descriptionURL:matches.descriptionURL,
+            dayNumber: montCount, 
+            month: month + 1,     
+            year: year
+        });
+        
+
+}
 
 function createCalendarDay(i,weekRow){
     let monthName = months[month];
     let dayName=days[i];
     let occ=occurences[weekRow];
     const matches=filterDays(monthName, dayName, occ);
+    return matches
+}
+  
+function createCalendarDay2(i,weekRow){
+    let monthName = months[month];
+    let dayName=days[i];
+    let occ=occurences[weekRow];
+    const matches=filterDays2(monthName, dayName, occ);
     return matches
 }
    
@@ -131,6 +206,19 @@ function filterDays(monthName, dayName, occ) {
    return result.length > 0 ? result[0].name : "";
 }
 
+function filterDays2(monthName, dayName, occ) {
+ let param;
+ if (lastWeek==5 && occ=="fifth")  {param="last";}
+ else if (lastWeek==4 && occ=="forth")  {param="last";}
+ else {param=occ;}
+ const result = daysData.filter(day =>
+    (!monthName || day.monthName === monthName) &&
+    (!dayName || day.dayName === dayName) &&
+    (!param || day.occurence === param)
+  );
+
+  return result.length > 0 ? result : [];
+}
 
 function clickPreviousButton() {
   month === 0 ? (month = 11, year--) : month--;
@@ -148,6 +236,11 @@ function clickNextButton() {
   populateCalendar(); 
 }
 
+function clickExportButton() {
+  exportCalendar();
+  
+}
+
 function createHeader() {
   document.querySelector("#header").textContent = `${months[month]} ${year}`;
 
@@ -155,7 +248,10 @@ function createHeader() {
   prvBtn.addEventListener("click", clickPreviousButton);
 
   const nxtBtn = document.querySelector("#btnNext");
-  nxtBtn.addEventListener("click", clickNextButton); // ✅ fixed
+  nxtBtn.addEventListener("click", clickNextButton); 
+
+  const nxtExp = document.querySelector("#btnExport");
+  nxtExp.addEventListener("click", clickExportButton);
 }
 
 window.onload = function() {
