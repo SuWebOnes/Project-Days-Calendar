@@ -99,6 +99,14 @@ function initCalendar() {
   nextBtn.style.padding = "6px 12px";
   controlsDiv.appendChild(nextBtn);
 
+  // Export button
+  const exportBtn = document.createElement("button");
+  exportBtn.textContent = "Export Year";
+  exportBtn.style.padding = "6px 12px";
+  exportBtn.style.marginTop = "10px";
+  exportBtn.onclick = exportCalendar;
+  container.appendChild(exportBtn);
+
   // Header
   const headerH2 = document.createElement("h2");
   headerH2.style.margin="10px 0";
@@ -234,3 +242,36 @@ function findCommemoratives(monthName, dayName, occ){
 // === Navigation ===
 function prevMonth(){ state.month===0?(state.month=11,state.year--):state.month--; renderCalendar(); }
 function nextMonth(){ state.month===11?(state.month=0,state.year++):state.month++; renderCalendar(); }
+
+// === Export Calendar (from placeholder logic) ===
+function exportCalendar() {
+  const year = state.year;
+  const exportList = [];
+
+  for(let m=0; m<12; m++){
+    const lastDate = new Date(year, m+1, 0).getDate();
+    for(let d=1; d<=lastDate; d++){
+      const occ = getOccurrenceOfDay(year, m, d);
+      const matches = findCommemoratives(MONTHS[m], DAYS[(new Date(year,m,d).getDay()+6)%7], occ);
+      matches.forEach(day => {
+        exportList.push({
+          name: day.name,
+          monthName: day.monthName,
+          dayName: day.dayName,
+          occurence: day.occurence,
+          descriptionURL: day.descriptionURL,
+          dayNumber: d,
+          month: m+1,
+          year: year
+        });
+      });
+    }
+  }
+
+  // Download JSON
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportList, null, 2));
+  const dlAnchor = document.createElement("a");
+  dlAnchor.setAttribute("href", dataStr);
+  dlAnchor.setAttribute("download", `commemorative_days_${year}.json`);
+  dlAnchor.click();
+}
