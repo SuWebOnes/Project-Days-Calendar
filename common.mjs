@@ -1,12 +1,21 @@
-// Set page title for accessibility
-document.title = "Commemorative Calendar";
-
-// Load commemorative days JSON
+// === Global data (accessible in both Node and browser) ===
 let daysData = [];
-fetch("days.json")
-  .then(res => res.json())
-  .then(data => { daysData = data; initCalendar(); })
-  .catch(err => console.error("Failed to load days.json:", err));
+globalThis.daysData = daysData;
+
+// === Browser-specific setup ===
+if (typeof document !== "undefined") {
+  document.title = "Commemorative Calendar";
+
+  // Load commemorative days JSON
+  fetch("days.json")
+    .then(res => res.json())
+    .then(data => {
+      daysData = data;
+      globalThis.daysData = data; // keep global reference in sync
+      initCalendar();
+    })
+    .catch(err => console.error("Failed to load days.json:", err));
+}
 
 // === Constants ===
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -275,3 +284,5 @@ function exportCalendar() {
   dlAnchor.setAttribute("download", `commemorative_days_${year}.json`);
   dlAnchor.click();
 }
+// ✅ Exports for testing
+export { getOccurrenceOfDay, findCommemoratives, DAYS, MONTHS, OCCS };
