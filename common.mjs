@@ -1,20 +1,26 @@
+// === Import commemorative data ===
+import daysDataImport from "./days.json" with { type: "json" };
+
 // === Global data (accessible in both Node and browser) ===
-let daysData = [];
+let daysData = daysDataImport;
 globalThis.daysData = daysData;
 
 // === Browser-specific setup ===
 if (typeof document !== "undefined") {
   document.title = "Commemorative Calendar";
 
-  // Load commemorative days JSON
+  // If fetch fails, fallback to imported data
   fetch("days.json")
     .then(res => res.json())
     .then(data => {
       daysData = data;
-      globalThis.daysData = data; // keep global reference in sync
+      globalThis.daysData = data;
       initCalendar();
     })
-    .catch(err => console.error("Failed to load days.json:", err));
+    .catch(err => {
+      console.warn("Failed to load days.json via fetch, using import fallback:", err);
+      initCalendar();
+    });
 }
 
 // === Constants ===
@@ -56,19 +62,18 @@ function initCalendar() {
   prevBtn.style.padding = "6px 12px";
   controlsDiv.appendChild(prevBtn);
 
-  // Month/Year selector container
+  // Month/year controls
   const selectorDiv = document.createElement("div");
   selectorDiv.style.display = "flex";
   selectorDiv.style.gap = "10px";
   controlsDiv.appendChild(selectorDiv);
 
-  // Month selector label
+  // Month selector
   const monthLabel = document.createElement("label");
   monthLabel.textContent = "Month: ";
   monthLabel.setAttribute("for","monthSelect");
   selectorDiv.appendChild(monthLabel);
 
-  // Month selector
   const monthSelect = document.createElement("select");
   monthSelect.id = "monthSelect";
   MONTHS.forEach((m,i)=>{
@@ -78,16 +83,18 @@ function initCalendar() {
     if(i===state.month) option.selected=true;
     monthSelect.appendChild(option);
   });
-  monthSelect.onchange = () => { state.month = parseInt(monthSelect.value); renderCalendar(); };
+  monthSelect.onchange = () => { 
+    state.month = parseInt(monthSelect.value); 
+    renderCalendar(); 
+  };
   selectorDiv.appendChild(monthSelect);
 
-  // Year input label
+  // Year input
   const yearLabel = document.createElement("label");
   yearLabel.textContent = "Year: ";
   yearLabel.setAttribute("for","yearInput");
   selectorDiv.appendChild(yearLabel);
 
-  // Year input (unlimited)
   const yearInput = document.createElement("input");
   yearInput.type = "number";
   yearInput.min = 1;
@@ -131,7 +138,6 @@ function initCalendar() {
   table.setAttribute("role","grid");
   container.appendChild(table);
 
-  // Table head
   const thead = document.createElement("thead");
   thead.style.background="#f0f0f0";
   const trHead = document.createElement("tr");
@@ -145,11 +151,9 @@ function initCalendar() {
   thead.appendChild(trHead);
   table.appendChild(thead);
 
-  // Table body
   const tbody = document.createElement("tbody");
   table.appendChild(tbody);
 
-  // Events container
   const eventsDiv = document.createElement("div");
   eventsDiv.style.marginTop="20px";
   eventsDiv.style.width = "100%";
@@ -159,7 +163,6 @@ function initCalendar() {
   eventsDiv.style.lineHeight = "1.5";
   container.appendChild(eventsDiv);
 
-  // Attach to global
   window._calendar = { tbody, eventsDiv, headerH2, monthSelect, yearInput };
 
   renderCalendar();
@@ -190,8 +193,9 @@ function renderCalendar() {
       td.style.border="1px solid #ddd";
       td.setAttribute("role","gridcell");
 
-      if(w===0 && d<firstDay || day>lastDate){ td.textContent=""; }
-      else{
+      if(w===0 && d<firstDay || day>lastDate){ 
+        td.textContent=""; 
+      } else {
         const occ = getOccurrenceOfDay(year, month, day);
         const matches = findCommemoratives(MONTHS[month], DAYS[d], occ);
 
@@ -243,16 +247,29 @@ function getOccurrenceOfDay(year, month, day){
   return (day+7>lastDate)?"last":OCCS[weekNum-1];
 }
 
-// === Filter commemorative days ===
+// === Filter commemorative days (case-insensitive, flexible spelling) ===
 function findCommemoratives(monthName, dayName, occ){
-  return daysData.filter(d=> d.monthName===monthName && d.dayName===dayName && d.occurence===occ);
+  return daysData.filter(d => 
+    d.monthName?.toLowerCase() === monthName.toLowerCase() &&
+    d.dayName?.toLowerCase() === dayName.toLowerCase() &&
+    (d.occurence?.toLowerCase?.() === occ.toLowerCase?.() ||
+     d.occurrence?.toLowerCase?.() === occ.toLowerCase?.())
+  );
 }
 
 // === Navigation ===
-function prevMonth(){ state.month===0?(state.month=11,state.year--):state.month--; renderCalendar(); }
-function nextMonth(){ state.month===11?(state.month=0,state.year++):state.month++; renderCalendar(); }
+function prevMonth(){ 
+  if (state.month===0){ state.month=11; state.year--; } 
+  else state.month--; 
+  renderCalendar(); 
+}
+function nextMonth(){ 
+  if (state.month===11){ state.month=0; state.year++; } 
+  else state.month++; 
+  renderCalendar(); 
+}
 
-// === Export Calendar (from placeholder logic) ===
+// === Export Calendar ===
 function exportCalendar() {
   const year = state.year;
   const exportList = [];
@@ -267,7 +284,7 @@ function exportCalendar() {
           name: day.name,
           monthName: day.monthName,
           dayName: day.dayName,
-          occurence: day.occurence,
+          occurence: day.occurence || day.occurrence,
           descriptionURL: day.descriptionURL,
           dayNumber: d,
           month: m+1,
@@ -284,5 +301,6 @@ function exportCalendar() {
   dlAnchor.setAttribute("download", `commemorative_days_${year}.json`);
   dlAnchor.click();
 }
+
 // ✅ Exports for testing
 export { getOccurrenceOfDay, findCommemoratives, DAYS, MONTHS, OCCS };
