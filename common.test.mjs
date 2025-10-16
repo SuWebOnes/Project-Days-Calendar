@@ -1,7 +1,7 @@
-import { getGreeting } from "./common.mjs";
-import assert from "node:assert";
-import test from "node:test";
+import assert from "assert";
+import { getDaysForMonth } from "./common.mjs";
 
-test("Greeting is correct", () => {
-  assert.equal(getGreeting(), "Hello");
-});
+const days = getDaysForMonth(2024, 9); // October 2024
+const lemurDay = days.find(d=>d.name==="World Lemur Day");
+assert.strictEqual(lemurDay.dayNumber, 25, "World Lemur Day 2024 should be on October 25");
+console.log("Test passed");
