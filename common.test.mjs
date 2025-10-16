@@ -1,17 +1,7 @@
-import assert from "node:assert";
-import test from "node:test";
-import { getOccurrenceOfDay, findCommemoratives, DAYS, MONTHS } from "./common.mjs";
+import assert from "assert";
+import { getDaysForMonth } from "./common.mjs";
 
-// Provide mock data for Node environment
-globalThis.daysData = [
-  { name: "Ada Lovelace Day", monthName: "October", dayName: "Tuesday", occurence: "second" },
-  { name: "World Lemur Day", monthName: "October", dayName: "Friday", occurence: "last" }
-];
-
-test("MONTHS contains 12 months", () => {
-  assert.equal(MONTHS.length, 12);
-});
-
-test("DAYS starts with Monday", () => {
-  assert.equal(DAYS[0], "Monday");
-});
+const days = getDaysForMonth(2024, 9); // October 2024
+const lemurDay = days.find(d=>d.name==="World Lemur Day");
+assert.strictEqual(lemurDay.dayNumber, 25, "World Lemur Day 2024 should be on October 25");
+console.log("Test passed");
